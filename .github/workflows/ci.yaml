@@ -7,28 +7,32 @@ on:
   pull_request:
     branches:
       - master
-
-defaults:
-  run:
-    shell: 'bash -o errexit -o nounset -o pipefail {0}'
+  workflow_dispatch:
 
 jobs:
-  ci:
+  docker:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        version: [jdk11, jdk11-alpine, jdk11-focal, jdk17, jdk17-alpine, jdk17-focal, jdk17-graal, jdk17-focal-graal, jdk21, jdk21-alpine, jdk21-graal]
+        version: [ jdk11, jdk11-alpine, jdk11-focal, jdk17, jdk17-alpine, jdk17-focal, jdk17-graal, jdk17-focal-graal, jdk21, jdk21-alpine, jdk21-graal ]
     steps:
-      - name: checkout
-        uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: build
-        env:
-          version: ${{ matrix.version }}
-        run: |
-          cd "${version}"
-          baseImage=$(grep "FROM " Dockerfile | cut -d' ' -f2)
-          docker pull "${baseImage}"
-          docker build --tag "gradle:${version}" .
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ matrix.version }}
+          platforms: linux/amd64,linux/arm64
+          push: false
+          tags: gradle:${{ matrix.version }}
+
       - name: test
         env:
           version: ${{ matrix.version }}
