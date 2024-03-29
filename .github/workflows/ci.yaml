@@ -3,7 +3,7 @@ name: GitHub CI
 on:
   push:
     branches:
-      - master
+      - multiplatform
   pull_request:
     branches:
       - master
