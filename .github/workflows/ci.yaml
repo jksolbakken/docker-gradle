@@ -44,3 +44,4 @@ jobs:
             cd test
           fi
           ./run.sh "gradle:${version}" "${expectedGradleVersion}"
+
